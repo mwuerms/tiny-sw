@@ -64,10 +64,11 @@ static void _EnterSleepMode(uint8_t mode) {
  *                  =2: falling edge
  *                  =3: rising edge
  */
-static inline void _SetupINT0(uint8_t mode) {
-    mode &= ~0x03;
+static void _SetupINT0(uint8_t mode) {
+    mode  &=  (_BV(ISC01)|_BV(ISC00));
     GIMSK &= ~_BV(INT0);
-    MCUCR &= ~(mode);
+    MCUCR &= ~(_BV(ISC01)|_BV(ISC00));
+    MCUCR |=  mode;
     GIFR  |=  _BV(INTF0);
     GIMSK |=  _BV(INT0);
 }
@@ -76,18 +77,20 @@ static inline void _SetupINT0(uint8_t mode) {
  * ISR for button, low level Interrupt
  */
 ISR(INT0_vect) {
+    GIFR  |=  _BV(INTF0);
+    /*
     // determine which type has triggered
     if((MCUCR & (_BV(ISC01)|_BV(ISC00))) == 0x00) {
         // low level interrupt has triggered --> enable rising edge
-        _SetupINT0(0);
+        _SetupINT0(3);
     }
     else {
         // any other type: only rising edge was setup
         // rising edge has triggered --> enable low level
-        _SetupINT0(3);
+        _SetupINT0(0);
         // reenter sleep mode
         wakeup = 1;
-    }
+    }*/
 }
 
 /**
@@ -95,13 +98,20 @@ ISR(INT0_vect) {
  */
 static void init(void) {
     wakeup = 0;
+    PRR = 0xFF;
     // button: PB2, input, pull up, level interrupt (low)
     DDRB  &= ~_BV(2);
     PORTB |=  _BV(2);
     MCUCR &= ~_BV(PUD);
 
+    DDRB |= _BV(0);
+    PORTB &= ~_BV(0);
+    PORTB |=  _BV(0);
+    PORTB &= ~_BV(0);
+
     // level interrupt, must be hold for at least 4 clock cycles
     _SetupINT0(0);
+    sei();
 }
 
 /* - public functions ------------------------------------------------------- */
@@ -111,20 +121,64 @@ static void init(void) {
  */
 int main (void)
 {
+    uint8_t in1, in0;
+    in0 = 0;
+    in1 = 0;
     init();
+    /*while(1) {
+        in0 = PINB & _BV(2);
+        if((in0 == _BV(2) ) && (in1 == 0)) {
+            // falling edge
+            PORTB &= ~_BV(0);
+        }
+        if((in0 == 0) && (in1 == _BV(2) )) {
+            // rising edge
+            PORTB |=  _BV(0);
+        }
+        in1 = in0;
+    }*/
+    /*
     while(1) {
-        while(wakeup == 0);
-        wakeup = 0;
+        PRR = 0xFF;
+        // programmer not plugged in
+        // active 5.8 mA
+        //_EnterSleepMode(SLEEP_MODE_IDLE); // 2.7 mA
+        //_EnterSleepMode(SLEEP_MODE_ADC); // 2.3 mA
+        //_EnterSleepMode(SLEEP_MODE_PWR_DOWN); // 0.000 mA, cannot measure
+        //_EnterSleepMode(SLEEP_MODE_PWR_SAVE); // 4.3 mA, does not work, do not use
+    }
+
+    while(1) {
+        // PRR not set
+        // programmer AVR JTAG ICE mkII plugged in
+        // active 6.3 mA
+        //_EnterSleepMode(SLEEP_MODE_IDLE); // 4.7 mA
+        //_EnterSleepMode(SLEEP_MODE_ADC); // 3.6 mA
+        //_EnterSleepMode(SLEEP_MODE_PWR_DOWN); // 1.4 mA
+        //_EnterSleepMode(SLEEP_MODE_PWR_SAVE); // 6.5 mA, does not work, do not use
+    }*/
+
+    while(1) {
+        PORTB |=  _BV(0);
+        PORTB &= ~_BV(0);
         _EnterSleepMode(SLEEP_MODE_IDLE);
-        while(wakeup == 0);
-        wakeup = 0;
+        while((PINB & _BV(2)) == 0);
+
+        PORTB |=  _BV(0);
+        PORTB &= ~_BV(0);
+        PORTB |=  _BV(0);
+        PORTB &= ~_BV(0);
         _EnterSleepMode(SLEEP_MODE_ADC);
-        while(wakeup == 0);
-        wakeup = 0;
-        _EnterSleepMode(SLEEP_MODE_PWR_DOWN);
-        while(wakeup == 0);
-        wakeup = 0;
-        _EnterSleepMode(SLEEP_MODE_PWR_SAVE);
+        while((PINB & _BV(2)) == 0);
+
+        PORTB |=  _BV(0);
+        PORTB &= ~_BV(0);
+        PORTB |=  _BV(0);
+        PORTB &= ~_BV(0);
+        PORTB |=  _BV(0);
+        PORTB &= ~_BV(0);
+        _EnterSleepMode(SLEEP_MODE_PWR_DOWN);   // wake from INT0, low level interrupt only
+        while((PINB & _BV(2)) == 0);
     }
     return(0);
 }
