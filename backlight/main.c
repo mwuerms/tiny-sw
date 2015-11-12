@@ -32,12 +32,12 @@
 /* - typedefs --------------------------------------------------------------- */
 
 /* - defines ---------------------------------------------------------------- */
-#define fEV_UPDATE_LEDs     _BV(0));
+#define fEV_UPDATE_LEDs     _BV(0)
 
 #define cNB_LEDs            (10)
 #define cBRIGHTNESS_0       (0)
-#define cBRIGHTNESS_1       (100)
-#define cBRIGHTNESS_2       (200)
+#define cBRIGHTNESS_1       (50)
+#define cBRIGHTNESS_2       (100)
 #define cBRIGHTNESS_STEP    (1)
 
 /* - variables -------------------------------------------------------------- */
@@ -82,7 +82,6 @@ static void _SetAllRedLEDs(uint8_t value) {
  * process the leds
  */
 static void leds_Update(void) {
-    uint8_t i;
     switch(led_state) {
         case 0:
             led_state = 1;
@@ -139,6 +138,7 @@ static void leds_Update(void) {
 static void init(void) {
     cli();
 
+    PRR = 0xFF;
     gloabl_events = 0;
     local_events = fEV_UPDATE_LEDs;
     led_state = 0;
@@ -154,13 +154,21 @@ static void init(void) {
 /**
  * main loop
  */
+#include <util/delay.h>
 int main (void)
 {
+    uint8_t i;
     init();
+    while(1) {
+        leds_Update();
+         _delay_ms(1000);
+        ledDriver_Set(leds, cNB_LEDs, _BV(4));
+    }
+
     while(1) {
         if(local_events & fEV_UPDATE_LEDs) {
             leds_Update();
-            ledDriver_Set(leds, cNB_LEDs, 1);
+            ledDriver_Set(leds, cNB_LEDs, _BV(4));
             wdtTimer_StartTimeout(led_timeout, fEV_UPDATE_LEDs);
         }
 
@@ -171,7 +179,8 @@ int main (void)
             if(local_events) {
                 sei();
             }
-            _EnterSleepMode(SLEEP_MODE_PWR_DOWN);
+            _EnterSleepMode(SLEEP_MODE_IDLE);
+            //_EnterSleepMode(SLEEP_MODE_PWR_DOWN);
         }
     }
     return(0);

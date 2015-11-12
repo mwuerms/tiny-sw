@@ -36,7 +36,7 @@ ISR(WDT_vect) {
     }
     else {
         wdtTimer_Stop();
-        // gloabl_events |= wdt_event_flag;
+        gloabl_events |= wdt_event_flag;
     }
 }
 
