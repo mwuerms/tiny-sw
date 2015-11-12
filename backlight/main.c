@@ -145,6 +145,8 @@ static void init(void) {
     memset(leds, 0, sizeof(*leds));
 
     wdtTimer_Init(cEV_TIMER_INTERVAL_64MS);
+    //wdtTimer_Init(cEV_TIMER_INTERVAL_2S);
+    //wdtTimer_StartTimeout(led_timeout, fEV_UPDATE_LEDs);
 
     sei();
 }
@@ -159,17 +161,21 @@ int main (void)
 {
     uint8_t i;
     init();
-    while(1) {
-        leds_Update();
-         _delay_ms(1000);
-        ledDriver_Set(leds, cNB_LEDs, _BV(4));
-    }
+    DDRB |= _BV(0);
+    PORTB &= ~_BV(0);
+    PORTB |=  _BV(0);
+    PORTB &= ~_BV(0);
+
+    // start
+    local_events = fEV_UPDATE_LEDs;
 
     while(1) {
         if(local_events & fEV_UPDATE_LEDs) {
+            PORTB |=  _BV(0);
             leds_Update();
             ledDriver_Set(leds, cNB_LEDs, _BV(4));
             wdtTimer_StartTimeout(led_timeout, fEV_UPDATE_LEDs);
+            PORTB &= ~_BV(0);
         }
 
         while(1) {
@@ -178,9 +184,10 @@ int main (void)
             gloabl_events = 0;
             if(local_events) {
                 sei();
+                break;
             }
-            _EnterSleepMode(SLEEP_MODE_IDLE);
-            //_EnterSleepMode(SLEEP_MODE_PWR_DOWN);
+            //_EnterSleepMode(SLEEP_MODE_IDLE);
+            _EnterSleepMode(SLEEP_MODE_PWR_DOWN);
         }
     }
     return(0);
