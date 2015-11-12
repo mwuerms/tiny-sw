@@ -77,7 +77,10 @@ static void _SetupINT0(uint8_t mode) {
  * ISR for button, low level Interrupt
  */
 ISR(INT0_vect) {
-    GIFR  |=  _BV(INTF0);
+
+    //PORTB |=  _BV(0);
+    //PORTB &= ~_BV(0);
+    //GIFR  |=  _BV(INTF0);
     /*
     // determine which type has triggered
     if((MCUCR & (_BV(ISC01)|_BV(ISC00))) == 0x00) {
@@ -161,6 +164,13 @@ int main (void)
     while(1) {
         PORTB |=  _BV(0);
         PORTB &= ~_BV(0);
+        while((PINB & _BV(2)));
+        while((PINB & _BV(2)) == 0);
+
+        PORTB |=  _BV(0);
+        PORTB &= ~_BV(0);
+        PORTB |=  _BV(0);
+        PORTB &= ~_BV(0);
         _EnterSleepMode(SLEEP_MODE_IDLE);
         while((PINB & _BV(2)) == 0);
 
@@ -168,9 +178,13 @@ int main (void)
         PORTB &= ~_BV(0);
         PORTB |=  _BV(0);
         PORTB &= ~_BV(0);
+        PORTB |=  _BV(0);
+        PORTB &= ~_BV(0);
         _EnterSleepMode(SLEEP_MODE_ADC);
         while((PINB & _BV(2)) == 0);
 
+        PORTB |=  _BV(0);
+        PORTB &= ~_BV(0);
         PORTB |=  _BV(0);
         PORTB &= ~_BV(0);
         PORTB |=  _BV(0);
