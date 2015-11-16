@@ -1,6 +1,6 @@
 /**
  * Martin Wuerms
- * 2015-10-18
+ * 2015-11-16
  *
  */
 
@@ -46,7 +46,7 @@ uint8_t vbat_Get(uint8_t vref) {
 
     result = ADCL; // must read ADCL first - it then locks ADCH
     result = ADCH; // unlocks both, but use ADCH only
-
+    return(result);
     result = 2816 / result; // Calculate Vcc (in mV); 2816 = 1.1*256*10, result in 100 mV
     return(result); // vbat in  100 mV
 }

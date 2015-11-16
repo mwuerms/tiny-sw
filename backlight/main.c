@@ -130,7 +130,7 @@ static void init(void) {
     wdtTimer_Init(cEV_TIMER_INTERVAL_0_125S);
 
     vbat = vbat_Get(cVREF_VCC);
-    sendSerial_(vbat, _BV(0), 2);
+    send_SeialMSB(vbat, _BV(0));
     sei();
 }
 

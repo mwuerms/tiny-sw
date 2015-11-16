@@ -77,6 +77,7 @@ SRC = main.c\
 ledDriver.c\
 wdtTimer.c\
 vbat.c\
+send.c\
 
 
 # List C++ source files here. (C dependencies are automatically generated.)
