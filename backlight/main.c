@@ -34,10 +34,10 @@
 /* - defines ---------------------------------------------------------------- */
 #define fEV_UPDATE_LEDs     _BV(0)
 
-#define cNB_LEDs            (10)
+#define cNB_LEDs            (5)
 #define cBRIGHTNESS_0       (0)
-#define cBRIGHTNESS_1       (50)
-#define cBRIGHTNESS_2       (100)
+#define cBRIGHTNESS_1       (45)
+#define cBRIGHTNESS_2       (90)
 #define cBRIGHTNESS_STEP    (1)
 
 /* - variables -------------------------------------------------------------- */
@@ -71,7 +71,7 @@ static void _EnterSleepMode(uint8_t mode) {
 /**
  * set all red leds to a given value
  */
-static void _SetAllRedLEDs(uint8_t value) {
+static void inline _SetAllRedLEDs(uint8_t value) {
     uint8_t i;
     for(i = 0; i < cNB_LEDs; i++) {
         leds[i].red = value;
@@ -82,55 +82,36 @@ static void _SetAllRedLEDs(uint8_t value) {
  * process the leds
  */
 static void leds_Update(void) {
-    switch(led_state) {
-        case 0:
-            led_state = 1;
-            led_timeout = 6;
-            _SetAllRedLEDs(cBRIGHTNESS_0);
-            break;
-        case 1:
-            led_state = 2;
-            led_timeout = 3;
-            _SetAllRedLEDs(cBRIGHTNESS_1);
-            break;
-        case 2:
-            led_state = 3;
-            led_timeout = 6;
-            _SetAllRedLEDs(cBRIGHTNESS_0);
-            break;
-        case 3:
-            led_state = 4;
-            led_timeout = 3;
-            _SetAllRedLEDs(cBRIGHTNESS_1);
-            break;
-        case 4:
-            led_state = 5;
-            led_timeout = 60;
-            _SetAllRedLEDs(cBRIGHTNESS_0);
-            break;
+    static uint8_t led_i = 0;
+    //static uint8_t led_dir = 0; // =0: down, =1: up
+    _SetAllRedLEDs(cBRIGHTNESS_1);
 
-        case 5:
-            led_timeout = 3;
-            if(leds[0].red < cBRIGHTNESS_2) {
-                _SetAllRedLEDs(leds[0].red + cBRIGHTNESS_STEP);
-            }
-            else {
-                led_state = 6;
-            }
-            break;
-        case 6:
-            led_timeout = 3;
-            if(leds[0].red > cBRIGHTNESS_1) {
-                _SetAllRedLEDs(leds[0].red - cBRIGHTNESS_STEP);
-            }
-            else {
-                led_state = 5;
-            }
-            break;
-
-        default: led_state = 0;
+    if(led_i == 0) {
+        led_i = cNB_LEDs-1;
+    }
+    else {
+        led_i--;
     }
 
+/*
+    if(led_i > cNB_LEDs) {
+        led_i = cNB_LEDs;
+        led_dir = 0;
+    }
+    if(led_dir == 0) {
+        led_i--;
+        if(led_i == 0) {
+            led_dir = 1;
+        }
+    }
+    else {
+        led_i++;
+        if(led_i >= (cNB_LEDs-1)) {
+            led_dir = 0;
+        }
+    }
+*/
+    leds[led_i].red = cBRIGHTNESS_2;
 }
 /**
  * initialize all components
@@ -144,9 +125,7 @@ static void init(void) {
     led_state = 0;
     memset(leds, 0, sizeof(*leds));
 
-    wdtTimer_Init(cEV_TIMER_INTERVAL_64MS);
-    //wdtTimer_Init(cEV_TIMER_INTERVAL_2S);
-    //wdtTimer_StartTimeout(led_timeout, fEV_UPDATE_LEDs);
+    wdtTimer_Init(cEV_TIMER_INTERVAL_0_125S);
 
     sei();
 }
@@ -161,21 +140,17 @@ int main (void)
 {
     uint8_t i;
     init();
-    DDRB |= _BV(0);
-    PORTB &= ~_BV(0);
-    PORTB |=  _BV(0);
-    PORTB &= ~_BV(0);
 
     // start
     local_events = fEV_UPDATE_LEDs;
 
     while(1) {
         if(local_events & fEV_UPDATE_LEDs) {
-            PORTB |=  _BV(0);
             leds_Update();
+            //ledDriver_Set(leds, cNB_LEDs, _BV(3));
             ledDriver_Set(leds, cNB_LEDs, _BV(4));
-            wdtTimer_StartTimeout(led_timeout, fEV_UPDATE_LEDs);
-            PORTB &= ~_BV(0);
+            //wdtTimer_StartTimeout(led_timeout, fEV_UPDATE_LEDs);
+            wdtTimer_StartTimeout(1, fEV_UPDATE_LEDs);
         }
 
         while(1) {
@@ -187,7 +162,7 @@ int main (void)
                 break;
             }
             //_EnterSleepMode(SLEEP_MODE_IDLE);
-            _EnterSleepMode(SLEEP_MODE_PWR_DOWN);
+            _EnterSleepMode(SLEEP_MODE_PWR_DOWN);   // 200 uA
         }
     }
     return(0);
