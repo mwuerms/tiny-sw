@@ -28,6 +28,7 @@
 #include "arch.h"
 #include "wdtTimer.h"
 #include "ledDriver.h"
+#include "vbat.h"
 
 /* - typedefs --------------------------------------------------------------- */
 
@@ -117,6 +118,7 @@ static void leds_Update(void) {
  * initialize all components
  */
 static void init(void) {
+    uint8_t vbat;
     cli();
 
     PRR = 0xFF;
@@ -127,6 +129,8 @@ static void init(void) {
 
     wdtTimer_Init(cEV_TIMER_INTERVAL_0_125S);
 
+    vbat = vbat_Get(cVREF_VCC);
+    sendSerial_(vbat, _BV(0), 2);
     sei();
 }
 
@@ -138,7 +142,6 @@ static void init(void) {
 #include <util/delay.h>
 int main (void)
 {
-    uint8_t i;
     init();
 
     // start
@@ -161,7 +164,6 @@ int main (void)
                 sei();
                 break;
             }
-            //_EnterSleepMode(SLEEP_MODE_IDLE);
             _EnterSleepMode(SLEEP_MODE_PWR_DOWN);   // 200 uA
         }
     }

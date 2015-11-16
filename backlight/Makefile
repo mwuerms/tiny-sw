@@ -76,6 +76,8 @@ OBJDIR = obj
 SRC = main.c\
 ledDriver.c\
 wdtTimer.c\
+vbat.c\
+
 
 # List C++ source files here. (C dependencies are automatically generated.)
 CPPSRC =
