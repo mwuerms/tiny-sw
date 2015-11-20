@@ -174,7 +174,7 @@ static void leds_Update(void) {
      ci = _inc(ci, (cNB_LEDs-1));
      ci = _inc(ci, (cNB_LEDs-1));*/
 
-     /*static uint8_t ci = cNB_LEDs;
+     static uint8_t ci = cNB_LEDs;
      ci = _inc(ci, (cNB_LEDs-1));
      mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 50, 0, 0);
      ci = _inc(ci, (cNB_LEDs-1));
@@ -187,7 +187,7 @@ static void leds_Update(void) {
      mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 0, 0, 50);
      ci = _inc(ci, (cNB_LEDs-1));
      mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 50, 0, 0);
-     ci = _inc(ci, (cNB_LEDs-1));*/
+     ci = _inc(ci, (cNB_LEDs-1));
 
      /*static uint8_t ci = cNB_LEDs;
      static color_t col = {.red = 50, .green = 0, .blue = 0};
@@ -206,11 +206,12 @@ static void leds_Update(void) {
      mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 50, 0, 0);
      ci = _inc(ci, (cNB_LEDs-1));
      ci = _inc(ci, (cNB_LEDs-1));*/
-
+/*
      static rgb_color_t c0, c1;
+     static fade_color_t fc;
      rgb_color_t cur;
      static uint8_t fade_state = 0;
-
+     uint8_t i;
      if(fade_state == 0) {
          fade_state = 1;
          c0.red = 0;
@@ -218,11 +219,26 @@ static void leds_Update(void) {
          c0.blue = 0;
 
          c1.red = 50;
-         c1.green = 0;
+         c1.green = 30;
          c1.blue = 0;
 
-         fade_Start();
-     }
+         fade_Start(&c0, &c1, &fc, 10);
+         fade_GetCurrentColor(&fc, &cur);
+
+         for(i = 0; i < cNB_LEDs; i++) {
+             mSETCOLOR(ledsc[i].red, ledsc[i].green, ledsc[i].blue, cur.red, cur.green, cur.blue);
+             if(fade_Next(&fc) == 0) {
+                 break;
+             }
+         }
+     }*/
+     /*mSETCOLOR(ledsc[0].red, ledsc[0].green, ledsc[0].blue, 0,0,15);
+     mSETCOLOR(ledsc[1].red, ledsc[1].green, ledsc[1].blue, 10,0,15);
+     mSETCOLOR(ledsc[2].red, ledsc[2].green, ledsc[2].blue, 20,0,15);
+     mSETCOLOR(ledsc[3].red, ledsc[3].green, ledsc[3].blue, 30,0,15);
+     mSETCOLOR(ledsc[4].red, ledsc[4].green, ledsc[4].blue, 40,0,15);
+     mSETCOLOR(ledsc[5].red, ledsc[5].green, ledsc[5].blue, 50,0,15);*/
+
 }
 /**
  * initialize all components
