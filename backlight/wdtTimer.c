@@ -31,7 +31,7 @@ static inline void wdtTimer_Stop(void) {
  * watchdog ISR
  */
 ISR(WDT_vect) {
-    if(wdt_timeout > 0) {
+    if(wdt_timeout > 1) {   // so "wdtTimer_StartTimeout(1, ...)" does result in delay of 1 and not 2 wdt periodes
         wdt_timeout--;
     }
     else {

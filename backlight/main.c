@@ -64,6 +64,18 @@
                         blue = b; \
                     } while(0)
 /* - variables -------------------------------------------------------------- */
+const rgb_color_t colors[] = {
+    {.red = 50, .green = 0, .blue = 0},
+    {.red = 50, .green = 0, .blue = 50},
+    {.red = 0, .green = 0, .blue = 50},
+    {.red = 0, .green = 50, .blue = 50},
+    {.red = 0, .green = 50, .blue = 0},
+    {.red = 50, .green = 50, .blue = 0},
+    {.red = 50, .green = 25, .blue = 0},
+    {.red = 50, .green = 25, .blue = 50},
+    {.red = 0, .green = 25, .blue = 50}};
+#define cNB_COLORS (sizeof(colors)/sizeof(rgb_color_t))
+
 volatile uint8_t gloabl_events, local_events;
 rgb_color_t leds[cNB_LEDs];
 rgb_color_t ledsc[cNB_LEDs];
@@ -173,7 +185,7 @@ static void leds_Update(void) {
      mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 0x00, 0x99, 0xff);
      ci = _inc(ci, (cNB_LEDs-1));
      ci = _inc(ci, (cNB_LEDs-1));*/
-
+/*
      static uint8_t ci = cNB_LEDs;
      ci = _inc(ci, (cNB_LEDs-1));
      mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 50, 0, 0);
@@ -187,7 +199,7 @@ static void leds_Update(void) {
      mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 0, 0, 50);
      ci = _inc(ci, (cNB_LEDs-1));
      mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 50, 0, 0);
-     ci = _inc(ci, (cNB_LEDs-1));
+     ci = _inc(ci, (cNB_LEDs-1));*/
 
      /*static uint8_t ci = cNB_LEDs;
      static color_t col = {.red = 50, .green = 0, .blue = 0};
@@ -206,32 +218,51 @@ static void leds_Update(void) {
      mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 50, 0, 0);
      ci = _inc(ci, (cNB_LEDs-1));
      ci = _inc(ci, (cNB_LEDs-1));*/
-/*
+
+
      static rgb_color_t c0, c1;
      static fade_color_t fc;
      rgb_color_t cur;
      static uint8_t fade_state = 0;
+     static uint8_t color_count;
      uint8_t i;
      if(fade_state == 0) {
          fade_state = 1;
-         c0.red = 0;
-         c0.green = 0;
-         c0.blue = 0;
-
-         c1.red = 50;
-         c1.green = 30;
-         c1.blue = 0;
+         color_count = 0;
+         mSETCOLOR(c0.red, c0.green, c0.blue, colors[color_count].red, colors[color_count].green, colors[color_count].blue);
+         color_count = _inc(color_count, (cNB_COLORS-1));
+         mSETCOLOR(c1.red, c1.green, c1.blue, colors[color_count].red, colors[color_count].green, colors[color_count].blue);
+         color_count = _inc(color_count, (cNB_COLORS-1));
 
          fade_Start(&c0, &c1, &fc, 10);
-         fade_GetCurrentColor(&fc, &cur);
 
-         for(i = 0; i < cNB_LEDs; i++) {
+         // wrong direction for(i = 0; i < cNB_LEDs; i++) {
+         for(i = cNB_LEDs-1; i > 0; i--) {
+             fade_GetCurrentColor(&fc, &cur);
              mSETCOLOR(ledsc[i].red, ledsc[i].green, ledsc[i].blue, cur.red, cur.green, cur.blue);
-             if(fade_Next(&fc) == 0) {
-                 break;
-             }
+             fade_Next(&fc);
          }
-     }*/
+         fade_GetCurrentColor(&fc, &cur);
+         mSETCOLOR(ledsc[i].red, ledsc[i].green, ledsc[i].blue, cur.red, cur.green, cur.blue);
+     }
+     else {
+         // copy values from [i-1] to [i], from cNB_LEDs-1 ... 1, afterwards set [0] to new value
+         for(i = cNB_LEDs-1; i > 0; i--) {
+             mSETCOLOR(ledsc[i].red, ledsc[i].green, ledsc[i].blue, ledsc[i-1].red, ledsc[i-1].green, ledsc[i-1].blue);
+
+         }
+         if(fade_Next(&fc) == 0) {
+             // set new colors
+             mSETCOLOR(c0.red, c0.green, c0.blue, c1.red, c1.green, c1.blue);
+             mSETCOLOR(c1.red, c1.green, c1.blue, colors[color_count].red, colors[color_count].green, colors[color_count].blue);
+             color_count = _inc(color_count, (cNB_COLORS-1));
+             fade_Start(&c0, &c1, &fc, 10);
+         }
+         fade_GetCurrentColor(&fc, &cur);
+         mSETCOLOR(ledsc[0].red, ledsc[0].green, ledsc[0].blue, cur.red, cur.green, cur.blue);
+
+     }
+
      /*mSETCOLOR(ledsc[0].red, ledsc[0].green, ledsc[0].blue, 0,0,15);
      mSETCOLOR(ledsc[1].red, ledsc[1].green, ledsc[1].blue, 10,0,15);
      mSETCOLOR(ledsc[2].red, ledsc[2].green, ledsc[2].blue, 20,0,15);
@@ -253,8 +284,7 @@ static void init(void) {
     led_state = 0;
     memset(leds, 0, sizeof(*leds));
 
-    //wdtTimer_Init(cEV_TIMER_INTERVAL_0_125S);
-    wdtTimer_Init(cEV_TIMER_INTERVAL_0_5S);
+    wdtTimer_Init(cEV_TIMER_INTERVAL_0_125S);
 
     vbat = vbat_Get(cVREF_VCC);
     send_SeialMSB(vbat, _BV(0));

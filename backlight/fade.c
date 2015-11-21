@@ -84,15 +84,14 @@ uint8_t fade_Next(fade_color_t *fade) {
 		//printf("calc color red: %d, green: %d, blue: %d\n", fade->calc_color.red.u16, fade->calc_color.green.u16, fade->calc_color.blue.u16);
 		return(0);
 	}
-	else {
-		fade->step--;
-		// calc new color value
-		fade->calc_color.red.u16 += fade->delta.red;
-		fade->calc_color.green.u16 += fade->delta.green;
-		fade->calc_color.blue.u16 += fade->delta.blue;
+	fade->step--;
+	// calc new color value
+	fade->calc_color.red.u16 += fade->delta.red;
+	fade->calc_color.green.u16 += fade->delta.green;
+	fade->calc_color.blue.u16 += fade->delta.blue;
 
-		//printf("calc color red: %d, green: %d, blue: %d\n", fade->calc_color.red.u16, fade->calc_color.green.u16, fade->calc_color.blue.u16);
-	}
+	//printf("calc color red: %d, green: %d, blue: %d\n", fade->calc_color.red.u16, fade->calc_color.green.u16, fade->calc_color.blue.u16);
+	return(1);
 }
 
 /**
