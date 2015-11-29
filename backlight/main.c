@@ -13,8 +13,18 @@
  * VCC      8       2.7 ... 5.5 V
  * GND      4
  *
+ * pin usage on project "backlight"
+ * name     signal
+ * PB0      AVREF to measure VBAT
+ * PB1      VCC-enable for LEDs, high: disable, low: enable, using P-FET to switch power
+ * PB2      button, internal pullup, INT0 for wakeup
+ * PB3      serial signal for LEDs1
+ * PB4      serial signal for LEDs2
+ * PB5      Reset
+ *
  * pin usage on pcb
  * name     signal
+ * PB2      button, internal pullup, INT0 for wakeup
  * PB3      USB D+
  * PB4      USB D-
  * PB5      Reset
@@ -46,11 +56,17 @@
 #include "ledDriver.h"
 #include "vbat.h"
 #include "fade.h"
+#include "send.h"
+#include "button.h"
 
 /* - typedefs --------------------------------------------------------------- */
 
 /* - defines ---------------------------------------------------------------- */
+volatile uint8_t gloabl_events;
 #define fEV_UPDATE_LEDs     _BV(0)
+#define fEB_GET_BUTTON      _BV(1)
+
+
 
 #define cNB_LEDs            (6)
 #define cBRIGHTNESS_0       (0)
@@ -76,7 +92,6 @@ const rgb_color_t colors[] = {
     {.red = 0, .green = 25, .blue = 50}};
 #define cNB_COLORS (sizeof(colors)/sizeof(rgb_color_t))
 
-volatile uint8_t gloabl_events, local_events;
 rgb_color_t leds[cNB_LEDs];
 rgb_color_t ledsc[cNB_LEDs];
 uint8_t led_state, led_timeout;
@@ -280,7 +295,6 @@ static void init(void) {
 
     PRR = 0xFF;
     gloabl_events = 0;
-    local_events = fEV_UPDATE_LEDs;
     led_state = 0;
     memset(leds, 0, sizeof(*leds));
 
@@ -299,6 +313,7 @@ static void init(void) {
 #include <util/delay.h>
 int main (void)
 {
+    uint8_t local_events;
     init();
 
     // start
