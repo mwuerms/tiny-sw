@@ -4,12 +4,8 @@
  *
  */
 
-#ifndef _BUTTON_H_
-#define _BUTTON_H_
-
 /* - includes --------------------------------------------------------------- */
-#include <stdint.h>
-#include <avr/io.h>
+#include "button.h"
 
 /* - defines ---------------------------------------------------------------- */
 #define cBUTTON_PIN _BV(2)  // button on PB2
@@ -33,22 +29,17 @@ void button_Init(void) {
 }
 /**
  * get the state of the button
- * @param   interval    timing interval
+ * @param   pressed_delay    call this func so many times in fixed interval to return cBUTTON_RETURN_PRESSED_LONG
  * @return  see cBUTTON_RETURN_... in button.h
  */
-#define cBUTTON_RETURN_UNPRESSED   (0)
-#define cBUTTON_RETURN_PRESSED     (1)
-#define cBUTTON_RETURN_RISING      (2)
-#define cBUTTON_RETURN_FALLING     (3)
-#define cBUTTON_RETURN_PRESSED_2s  (4)
-uint8_t button_Get(uint8_t interval) {
+uint8_t button_Get(uint8_t pressed_delay) {
     static uint8_t value = 1, value_old = 1;    // unpressed
     static uint8_t timeout;
 
     value = button_GetValue();
     if((value == 0) && (value_old == 1)) {
         // falling edge
-        timeout = 32;// 2000ms/64ms + 1;
+        timeout = pressed_delay;// 2000ms/64ms + 1 = 32
         value_old = value;
         return(cBUTTON_RETURN_FALLING);
     }
@@ -58,16 +49,16 @@ uint8_t button_Get(uint8_t interval) {
         if(timeout == 0) {
             timeout--;
             value_old = value;
-            return(cBUTTON_RETURN_FALLING);
+            return(cBUTTON_RETURN_PRESSED);
         }
         else {
             timeout--;
             if(timeout == 0) {
                 value_old = value;
-                return(cBUTTON_RETURN_PRESSED_2s);
+                return(cBUTTON_RETURN_PRESSED_LONG);
             }
             value_old = value;
-            return(cBUTTON_RETURN_FALLING);
+            return(cBUTTON_RETURN_PRESSED);
         }
     }
 
@@ -82,5 +73,3 @@ uint8_t button_Get(uint8_t interval) {
     value_old = value;
     return(cBUTTON_RETURN_UNPRESSED);
 }
-
-#endif /* _BUTTON_H_ */

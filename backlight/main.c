@@ -46,7 +46,6 @@
 
 /* - defines ---------------------------------------------------------------- */
 volatile uint8_t gloabl_events;
-#define fEB_GET_BUTTON      _BV(1)
 
 /* - variables -------------------------------------------------------------- */
 
@@ -109,6 +108,9 @@ int main (void)
     while(1) {
         if(local_events & fEV_UPDATE_LEDs) {
             ledAnimation_Update();
+        }
+        if(local_events & fEV_GET_BUTTON) {
+            button_Get(4);
         }
 
         while(1) {
