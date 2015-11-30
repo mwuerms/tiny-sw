@@ -79,7 +79,8 @@ wdtTimer.c\
 vbat.c\
 send.c\
 fade.c\
-button.c
+button.c\
+ledAnimation.c
 
 # List C++ source files here. (C dependencies are automatically generated.)
 CPPSRC =
