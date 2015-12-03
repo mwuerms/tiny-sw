@@ -33,11 +33,11 @@ void button_Init(void) {
  * @return  see cBUTTON_RETURN_... in button.h
  */
 uint8_t button_Get(uint8_t pressed_delay) {
-    static uint8_t value = 1, value_old = 1;    // unpressed
+    static uint8_t value = cBUTTON_PIN, value_old = cBUTTON_PIN;    // unpressed
     static uint8_t timeout;
 
     value = button_GetValue();
-    if((value == 0) && (value_old == 1)) {
+    if((value == 0) && (value_old == cBUTTON_PIN)) {
         // falling edge
         timeout = pressed_delay;// 2000ms/64ms + 1 = 32
         value_old = value;
@@ -62,13 +62,13 @@ uint8_t button_Get(uint8_t pressed_delay) {
         }
     }
 
-    if((value == 1) && (value_old == 0)) {
+    if((value == cBUTTON_PIN) && (value_old == 0)) {
         // rising edge
         value_old = value;
         return(cBUTTON_RETURN_RISING);
     }
 
-    // if((value == 1) && (value_old == 1)) {
+    // if((value == cBUTTON_PIN) && (value_old == cBUTTON_PIN)) {
     // unpressed
     value_old = value;
     return(cBUTTON_RETURN_UNPRESSED);

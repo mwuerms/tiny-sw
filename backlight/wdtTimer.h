@@ -24,7 +24,5 @@
 #define cEV_TIMER_INTERVAL_2S       7
 
 /* - public functions ------------------------------------------------------- */
-void wdtTimer_Init(uint8_t interval);
-void wdtTimer_StartTimeout(uint8_t timeout, uint8_t event_flag);
-
+void wdtTimer_StartTimeout(uint8_t timeout, uint8_t interval, uint8_t event_flag);
 #endif /* _WDT_TIMER_H_ */

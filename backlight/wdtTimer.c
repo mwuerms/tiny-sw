@@ -15,7 +15,7 @@
 /* - typedef ---------------------------------------------------------------- */
 
 /* - variables -------------------------------------------------------------- */
-static volatile uint8_t wdt_interval, wdt_timeout, wdt_event_flag;
+static volatile uint8_t wdt_timeout, wdt_event_flag;
 
 /* - private functions ------------------------------------------------------ */
 
@@ -43,23 +43,16 @@ ISR(WDT_vect) {
 /* - public functions ------------------------------------------------------- */
 
 /**
- * initialize the event timer
- */
-void wdtTimer_Init(uint8_t interval) {
-    wdt_interval = interval & 0x07;
-}
-
-/**
  * start the wdtTimer
  * @param   timeout     overall timeout = interval * timeout
  */
-void wdtTimer_StartTimeout(uint8_t timeout, uint8_t event_flag) {
+void wdtTimer_StartTimeout(uint8_t timeout, uint8_t interval, uint8_t event_flag) {
     uint8_t sr;
     lock_interrupt(sr);
     wdt_timeout = timeout;
     wdt_event_flag = event_flag;
     WDTCR = (1 << WDCE) | (1 << WDIF);
-    WDTCR = (wdt_interval);
+    WDTCR = (interval & 0x07);
     WDTCR |= (1 << WDIE);
     restore_interrupt(sr);
 }

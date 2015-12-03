@@ -43,12 +43,19 @@
 #include "ledAnimation.h"
 
 /* - typedefs --------------------------------------------------------------- */
+//typedef void *(* state_handler_t)(void);
 
 /* - defines ---------------------------------------------------------------- */
-volatile uint8_t gloabl_events;
 
 /* - variables -------------------------------------------------------------- */
+volatile uint8_t gloabl_events;
+#define fEV_TICK_TIMER     _BV(0)
 
+//static state_handler_t state_func;
+static uint8_t state;
+#define cST_BOOT    (0)
+#define cST_ANIMATE (1)
+#define cST_OFF     (2)
 
 /* - private functions  ----------------------------------------------------- */
 /**
@@ -82,12 +89,12 @@ static void init(void) {
 
     PRR = 0xFF;
     gloabl_events = 0;
+    state = cST_BOOT;
+    button_Init();
     ledAnimation_Init();
 
-    wdtTimer_Init(cEV_TIMER_INTERVAL_0_125S);
-
-    vbat = vbat_Get(cVREF_VCC);
-    send_SeialMSB(vbat, _BV(0));
+    /*vbat = vbat_Get(cVREF_VCC);
+    send_SeialMSB(vbat, _BV(0));*/
     sei();
 }
 
@@ -99,18 +106,36 @@ static void init(void) {
 #include <util/delay.h>
 int main (void)
 {
-    uint8_t local_events;
+    uint8_t local_events = 0;
+    uint8_t button_state = 0;
     init();
 
     // start
-    local_events = fEV_UPDATE_LEDs;
+    wdtTimer_StartTimeout(1, cEV_TIMER_INTERVAL_0_125S, fEV_TICK_TIMER);
+    state = cST_ANIMATE;
 
     while(1) {
-        if(local_events & fEV_UPDATE_LEDs) {
-            ledAnimation_Update();
-        }
-        if(local_events & fEV_GET_BUTTON) {
-            button_Get(4);
+        if(local_events & fEV_TICK_TIMER) {
+            if(state == cST_ANIMATE) {
+                ledAnimation_Update();
+
+                /*if(button_state > 0) {
+                    button_state--;
+                }
+                else {
+                    button_state = 20;
+                    ledAnimation_Next();
+                }*/
+                button_state = button_Get(16);
+
+                if(button_state == cBUTTON_RETURN_FALLING) {
+                    ledAnimation_Next();
+                }
+                wdtTimer_StartTimeout(1, cEV_TIMER_INTERVAL_0_125S, fEV_TICK_TIMER);
+            }
+            /*else { // only other possible state: if(state == cST_OFF)
+
+            }*/
         }
 
         while(1) {

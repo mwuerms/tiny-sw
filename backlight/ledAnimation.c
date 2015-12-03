@@ -48,12 +48,19 @@ static const rgb_color_t colors[] = {
     {.red = 0, .green = 50, .blue = 0},
     {.red = 50, .green = 50, .blue = 0},
     {.red = 50, .green = 25, .blue = 0},
-    {.red = 50, .green = 25, .blue = 50},
-    {.red = 0, .green = 25, .blue = 50}};
+    {.red = 50, .green = 25, .blue = 25},
+    {.red = 0, .green = 25, .blue = 50},
+    {.red = 0, .green = 50, .blue = 25},
+    {.red = 0, .green = 25, .blue = 25},
+    {.red = 25, .green = 50, .blue = 0},
+    {.red = 25, .green = 25, .blue = 50},
+};
 #define cNB_COLORS (sizeof(colors)/sizeof(rgb_color_t))
 
 static rgb_color_t leds1[cNB_LEDs];
+static uint8_t leds1_pin;
 static rgb_color_t leds2[cNB_LEDs];
+static uint8_t leds2_pin;
 
 static uint8_t led_state;//, led_timeout;
 
@@ -85,8 +92,20 @@ void ledAnimation_Init(void) {
     memset(leds1, 0, sizeof(*leds1));
     memset(leds2, 0, sizeof(*leds2));
 
-    ledDriver_Set(leds1, cNB_LEDs, _BV(4));
-    ledDriver_Set(leds2, cNB_LEDs, _BV(3));
+    leds1_pin = _BV(4);
+    leds2_pin = _BV(3);
+    ledDriver_Set(leds1, cNB_LEDs, leds1_pin);
+    ledDriver_Set(leds2, cNB_LEDs, leds2_pin);
+}
+
+/**
+ * switch to next animation
+ */
+void ledAnimation_Next(void) {
+    uint8_t temp;
+    temp = leds1_pin;
+    leds1_pin = leds2_pin;
+    leds2_pin = temp;
 }
 
 /**
@@ -95,10 +114,8 @@ void ledAnimation_Init(void) {
 void ledAnimation_Update(void) {
     static uint8_t led_i = 0;
 
-    ledDriver_Set(leds1, cNB_LEDs, _BV(4));
-    ledDriver_Set(leds2, cNB_LEDs, _BV(3));
-    //wdtTimer_StartTimeout(led_timeout, fEV_UPDATE_LEDs);
-    wdtTimer_StartTimeout(0, fEV_UPDATE_LEDs);
+    ledDriver_Set(leds1, cNB_LEDs, leds1_pin);
+    ledDriver_Set(leds2, cNB_LEDs, leds2_pin);
 
     //static uint8_t led_dir = 0; // =0: down, =1: up
     _SetAllRedLEDs(leds2, cNB_LEDs, cBRIGHTNESS_1);
@@ -109,91 +126,7 @@ void ledAnimation_Update(void) {
     else {
         led_i--;
     }
-
-    /*
-        if(led_i > cNB_LEDs) {
-            led_i = cNB_LEDs;
-            led_dir = 0;
-        }
-        if(led_dir == 0) {
-            led_i--;
-            if(led_i == 0) {
-                led_dir = 1;
-            }
-        }
-        else {
-            led_i++;
-            if(led_i >= (cNB_LEDs-1)) {
-                led_dir = 0;
-            }
-        }
-    */
     leds2[led_i].red = cBRIGHTNESS_2;
-
-    /*
-     * ff0000 red
-     * ff0066 piggy pink
-     * ff00ff pink
-     * 9900ff dark pink
-     * 0000ff blue
-     * 0099ff light blue
-     * ff3300 orange 1
-     * ffff00 yellow
-     * cc9900 dark yellow
-     * 00ff00 green
-     * 669900 dark green
-     * 66ff33 poison green
-     * 00ffff turkis
-     */
-     /*static uint8_t ci = cNB_LEDs;
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 0xff, 0x00, 0x00);
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 0xff, 0x00, 0x66);
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 0xff, 0x00, 0xff);
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 0x99, 0x00, 0x66);
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 0x00, 0x00, 0xff);
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 0x00, 0x99, 0xff);
-     ci = _inc(ci, (cNB_LEDs-1));
-     ci = _inc(ci, (cNB_LEDs-1));*/
-/*
-     static uint8_t ci = cNB_LEDs;
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 50, 0, 0);
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 50, 50, 0);
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 0, 50, 0);
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 0, 50, 50);
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 0, 0, 50);
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 50, 0, 0);
-     ci = _inc(ci, (cNB_LEDs-1));*/
-
-     /*static uint8_t ci = cNB_LEDs;
-     static color_t col = {.red = 50, .green = 0, .blue = 0};
-     color col1;
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, col1.red, col1.green. col1.blue);
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 50, 50, 0);
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 0, 50, 0);
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 0, 50, 50);
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 0, 0, 50);
-     ci = _inc(ci, (cNB_LEDs-1));
-     mSETCOLOR(ledsc[ci].red, ledsc[ci].green, ledsc[ci].blue, 50, 0, 0);
-     ci = _inc(ci, (cNB_LEDs-1));
-     ci = _inc(ci, (cNB_LEDs-1));*/
-
 
      static rgb_color_t c0, c1;
      static fade_color_t fc;
@@ -237,12 +170,5 @@ void ledAnimation_Update(void) {
          mSETCOLOR(leds1[0].red, leds1[0].green, leds1[0].blue, cur.red, cur.green, cur.blue);
 
      }
-
-     /*mSETCOLOR(ledsc[0].red, ledsc[0].green, ledsc[0].blue, 0,0,15);
-     mSETCOLOR(ledsc[1].red, ledsc[1].green, ledsc[1].blue, 10,0,15);
-     mSETCOLOR(ledsc[2].red, ledsc[2].green, ledsc[2].blue, 20,0,15);
-     mSETCOLOR(ledsc[3].red, ledsc[3].green, ledsc[3].blue, 30,0,15);
-     mSETCOLOR(ledsc[4].red, ledsc[4].green, ledsc[4].blue, 40,0,15);
-     mSETCOLOR(ledsc[5].red, ledsc[5].green, ledsc[5].blue, 50,0,15);*/
 
 }
