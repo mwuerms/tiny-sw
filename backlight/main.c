@@ -125,12 +125,12 @@ int main (void)
                 else {
                     button_state = 20;
                     ledAnimation_Next();
-                }*/
+                }* /
                 button_state = button_Get(16);
 
                 if(button_state == cBUTTON_RETURN_FALLING) {
                     ledAnimation_Next();
-                }
+                }*/
                 wdtTimer_StartTimeout(1, cEV_TIMER_INTERVAL_0_125S, fEV_TICK_TIMER);
             }
             /*else { // only other possible state: if(state == cST_OFF)

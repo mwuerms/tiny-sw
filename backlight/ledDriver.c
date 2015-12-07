@@ -56,16 +56,90 @@ int8_t ledDriver_Set(rgb_color_t *send, uint8_t length, uint8_t led_pin) {
     // 20 inst. clocks per bit: HHHHxxxxxxLLLLLLLLLL
     // ST instructions:         ^   ^     ^          (T=0,4,10)
 
-    volatile uint8_t next, bit;
-
+volatile uint8_t n1, n2 = 0; // First, next bits out
     DDRB  |= led_pin;
     PORTB &= led_pin;
     hi = PORTB |  led_pin;
     lo = PORTB & ~led_pin;
+    port = &PORTB;
+    n1 = lo;
+    if(b & 0x80) n1 = hi;
+
+    asm volatile(
+    "headB:"                   "\n\t"
+    "out  %[port] , %[hi]"    "\n\t"
+    "mov  %[n2]   , %[lo]"    "\n\t"
+    "out  %[port] , %[n1]"    "\n\t"
+    "rjmp .+0"                "\n\t"
+    "sbrc %[byte] , 6"        "\n\t"
+     "mov %[n2]   , %[hi]"    "\n\t"
+    "out  %[port] , %[lo]"    "\n\t"
+    "rjmp .+0"                "\n\t"
+    "out  %[port] , %[hi]"    "\n\t"
+    "mov  %[n1]   , %[lo]"    "\n\t"
+    "out  %[port] , %[n2]"    "\n\t"
+    "rjmp .+0"                "\n\t"
+    "sbrc %[byte] , 5"        "\n\t"
+     "mov %[n1]   , %[hi]"    "\n\t"
+    "out  %[port] , %[lo]"    "\n\t"
+    "rjmp .+0"                "\n\t"
+    "out  %[port] , %[hi]"    "\n\t"
+    "mov  %[n2]   , %[lo]"    "\n\t"
+    "out  %[port] , %[n1]"    "\n\t"
+    "rjmp .+0"                "\n\t"
+    "sbrc %[byte] , 4"        "\n\t"
+     "mov %[n2]   , %[hi]"    "\n\t"
+    "out  %[port] , %[lo]"    "\n\t"
+    "rjmp .+0"                "\n\t"
+    "out  %[port] , %[hi]"    "\n\t"
+    "mov  %[n1]   , %[lo]"    "\n\t"
+    "out  %[port] , %[n2]"    "\n\t"
+    "rjmp .+0"                "\n\t"
+    "sbrc %[byte] , 3"        "\n\t"
+     "mov %[n1]   , %[hi]"    "\n\t"
+    "out  %[port] , %[lo]"    "\n\t"
+    "rjmp .+0"                "\n\t"
+    "out  %[port] , %[hi]"    "\n\t"
+    "mov  %[n2]   , %[lo]"    "\n\t"
+    "out  %[port] , %[n1]"    "\n\t"
+    "rjmp .+0"                "\n\t"
+    "sbrc %[byte] , 2"        "\n\t"
+     "mov %[n2]   , %[hi]"    "\n\t"
+    "out  %[port] , %[lo]"    "\n\t"
+    "rjmp .+0"                "\n\t"
+    "out  %[port] , %[hi]"    "\n\t"
+    "mov  %[n1]   , %[lo]"    "\n\t"
+    "out  %[port] , %[n2]"    "\n\t"
+    "rjmp .+0"                "\n\t"
+    "sbrc %[byte] , 1"        "\n\t"
+     "mov %[n1]   , %[hi]"    "\n\t"
+    "out  %[port] , %[lo]"    "\n\t"
+    "rjmp .+0"                "\n\t"
+    "out  %[port] , %[hi]"    "\n\t"
+    "mov  %[n2]   , %[lo]"    "\n\t"
+    "out  %[port] , %[n1]"    "\n\t"
+    "rjmp .+0"                "\n\t"
+    "sbrc %[byte] , 0"        "\n\t"
+     "mov %[n2]   , %[hi]"    "\n\t"
+    "out  %[port] , %[lo]"    "\n\t"
+    "sbiw %[count], 1"        "\n\t"
+    "out  %[port] , %[hi]"    "\n\t"
+    "mov  %[n1]   , %[lo]"    "\n\t"
+    "out  %[port] , %[n2]"    "\n\t"
+    "ld   %[byte] , %a[ptr]+" "\n\t"
+    "sbrc %[byte] , 7"        "\n\t"
+     "mov %[n1]   , %[hi]"    "\n\t"
+    "out  %[port] , %[lo]"    "\n\t"
+    "brne headB"              "\n"
+    : [byte] "+r" (b), [n1] "+r" (n1), [n2] "+r" (n2), [count] "+w" (i)
+    : [port] "I" (_SFR_IO_ADDR(PORTB)), [ptr] "e" (ptr), [hi] "r" (hi),
+    [lo] "r" (lo));
+
+
+    /* 400 kHz is not sufficient
+    volatile uint8_t next, bit;
     next = lo;
     bit  = 8;
-    port = &PORTB;
-
     asm volatile (
     "head20:"                  "\n\t" // Clk  Pseudocode    (T =  0)
      "st   %a[port], %[hi]"    "\n\t" // 2    PORT = hi     (T =  2)
@@ -96,7 +170,7 @@ int8_t ledDriver_Set(rgb_color_t *send, uint8_t length, uint8_t led_pin) {
      : [hi]    "r" (hi),
        [lo]    "r" (lo),
        [ptr]   "e" (ptr));
-
+    */
     PORTB &= led_pin;
     restore_interrupt(sr);
     return(1);

@@ -29,7 +29,7 @@
 #include "fade.h"
 
 /* - defines ---------------------------------------------------------------- */
-#define cNB_LEDs            (6)
+#define cNB_LEDs            (5)
 #define cBRIGHTNESS_0       (0)
 #define cBRIGHTNESS_1       (45)
 #define cBRIGHTNESS_2       (90)
