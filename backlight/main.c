@@ -48,14 +48,15 @@
 /* - defines ---------------------------------------------------------------- */
 
 /* - variables -------------------------------------------------------------- */
-volatile uint8_t gloabl_events;
+volatile uint8_t global_events;
 #define fEV_TICK_TIMER     _BV(0)
+#define fEV_BUTTON_WAKE    _BV(1)
 
 //static state_handler_t state_func;
 static uint8_t state;
-#define cST_BOOT    (0)
-#define cST_ANIMATE (1)
-#define cST_OFF     (2)
+#define cST_BOOT        (0)
+#define cST_ANIMATE     (1)
+#define cST_OFF         (2)
 
 /* - private functions  ----------------------------------------------------- */
 /**
@@ -88,9 +89,8 @@ static void init(void) {
     cli();
 
     PRR = 0xFF;
-    gloabl_events = 0;
+    global_events = 0;
     state = cST_BOOT;
-    button_Init();
     ledAnimation_Init();
 
     /*vbat = vbat_Get(cVREF_VCC);
@@ -115,33 +115,53 @@ int main (void)
     state = cST_ANIMATE;
 
     while(1) {
-        if(local_events & fEV_TICK_TIMER) {
-            if(state == cST_ANIMATE) {
+
+        if(state == cST_ANIMATE) {
+            if(local_events & fEV_TICK_TIMER) {
                 ledAnimation_Update();
 
-                /*if(button_state > 0) {
-                    button_state--;
+                /*button_state = button_Get(16);
+                if(button_state == cBUTTON_RETURN_PRESSED_LONG) {
+                    ledAnimation_Init();
+                    state = cST_OFF;
                 }
-                else {
-                    button_state = 20;
-                    ledAnimation_Next();
-                }* /
-                button_state = button_Get(16);
-
                 if(button_state == cBUTTON_RETURN_FALLING) {
                     ledAnimation_Next();
                 }*/
                 wdtTimer_StartTimeout(1, cEV_TIMER_INTERVAL_0_125S, fEV_TICK_TIMER);
             }
-            /*else { // only other possible state: if(state == cST_OFF)
-
-            }*/
+        }
+        else { // only other possible state: if(state == cST_OFF)
+            if(local_events & fEV_BUTTON_WAKE) {
+                button_DisableIntWake();
+                button_state = button_Get(16);
+                if(button_state == cBUTTON_RETURN_UNPRESSED) {
+                    button_EnableIntWake(fEV_BUTTON_WAKE);
+                }
+                else {
+                    wdtTimer_StartTimeout(1, cEV_TIMER_INTERVAL_0_125S, fEV_TICK_TIMER);
+                }
+            }
+            if(local_events & fEV_TICK_TIMER) {
+                button_state = button_Get(16);
+                if(button_state == cBUTTON_RETURN_UNPRESSED) {
+                    button_EnableIntWake(fEV_BUTTON_WAKE);
+                }
+                else if(button_state == cBUTTON_RETURN_PRESSED_LONG) {
+                    ledAnimation_Init();
+                    wdtTimer_StartTimeout(1, cEV_TIMER_INTERVAL_0_125S, fEV_TICK_TIMER);
+                    state = cST_ANIMATE;
+                }
+                else {
+                    wdtTimer_StartTimeout(1, cEV_TIMER_INTERVAL_0_125S, fEV_TICK_TIMER);
+                }
+            }
         }
 
         while(1) {
             cli();
-            local_events = gloabl_events;
-            gloabl_events = 0;
+            local_events = global_events;
+            global_events = 0;
             if(local_events) {
                 sei();
                 break;

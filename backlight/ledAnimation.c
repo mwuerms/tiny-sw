@@ -89,8 +89,8 @@ static inline uint8_t _inc(uint8_t value, uint8_t max) {
  */
 void ledAnimation_Init(void) {
     led_state = 0;
-    memset(leds1, 0, sizeof(*leds1));
-    memset(leds2, 0, sizeof(*leds2));
+    memset(leds1, 0, sizeof(leds1));
+    memset(leds2, 0, sizeof(leds2));
 
     leds1_pin = _BV(4);
     leds2_pin = _BV(3);

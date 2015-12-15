@@ -10,6 +10,7 @@
 /* - includes --------------------------------------------------------------- */
 #include <stdint.h>
 #include <avr/io.h>
+#include <avr/cpufunc.h>
 
 /* - defines ---------------------------------------------------------------- */
 #define fEV_GET_BUTTON      _BV(1)
@@ -17,8 +18,11 @@
 /* - typedef ---------------------------------------------------------------- */
 
 /* - public functions ------------------------------------------------------- */
+void button_EnableIntWake(uint8_t event_flag);
+void button_DisableIntWake(void);
 
-void button_Init(void);
+void button_PullUpEnable(void);
+void button_OutLow(void);
 
 #define cBUTTON_RETURN_UNPRESSED        (0)
 #define cBUTTON_RETURN_PRESSED          (1)

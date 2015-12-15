@@ -56,9 +56,9 @@ int8_t ledDriver_Set(rgb_color_t *send, uint8_t length, uint8_t led_pin) {
     // 20 inst. clocks per bit: HHHHxxxxxxLLLLLLLLLL
     // ST instructions:         ^   ^     ^          (T=0,4,10)
 
-volatile uint8_t n1, n2 = 0; // First, next bits out
-    DDRB  |= led_pin;
-    PORTB &= led_pin;
+    volatile uint8_t n1, n2 = 0; // First, next bits out
+    DDRB  |=  led_pin;
+    PORTB &= ~led_pin;
     hi = PORTB |  led_pin;
     lo = PORTB & ~led_pin;
     port = &PORTB;
@@ -171,7 +171,7 @@ volatile uint8_t n1, n2 = 0; // First, next bits out
        [lo]    "r" (lo),
        [ptr]   "e" (ptr));
     */
-    PORTB &= led_pin;
+    PORTB &= ~led_pin;
     restore_interrupt(sr);
     return(1);
 }
