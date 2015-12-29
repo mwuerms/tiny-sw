@@ -1,0 +1,15 @@
+vusbtiny - ATTiny85 ISP
+see: http://www.instructables.com/id/VUSBTiny-AVR-SPI-Programmer
+
+1. check makefile, Pins D+, D-; save
+2. build: make all
+3. program: make install
+4. set fuses: avrdude -P -c jtag2isp -p t45 -V -U lfuse:w:0xe1:m -U hfuse:w:0x5d:m -U efuse:w:0xff:m
+
+5. add udev rule to /etc/udev/rules.d/52-usbtinyisp.rules
+edit using su/sudo, add this line:
+ATTR{idVendor}=="1781", ATTR{idProduct}=="0c9f", MODE="660", GROUP="dialout"
+
+6. sudo restart udev
+
+use: avrdude -p attiny85 -c usbtiny -B 100
